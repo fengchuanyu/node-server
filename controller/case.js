@@ -56,7 +56,7 @@ async function delDoctor(id) {
 async function addCase(data) {
   let response = {}
   let date = new Date();
-  let time = date.getFullYear()+"-"+(date.getMonth()+1)+"-"+(date.getDate()+1)
+  let time = date.getFullYear()+"-"+(date.getMonth()+1)+"-"+(date.getDate())
   await caseCollection.add({
       ...data,
       creatDate:time

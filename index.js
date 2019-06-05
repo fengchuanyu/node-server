@@ -11,6 +11,7 @@ const router = new Router({
 
 app.use(cors({
     origin: ['http://localhost:9527'],
+    maxAge: 5,
     credentials: true
 }));
 
@@ -22,8 +23,9 @@ app.use(koaBody({
 }));
 
 cloud.init({
-  secretId: 'AKIDwh03sRhJbfVAamvTyEKCsITO5XkhcwEI',
-  secretKey: 'xgAPPBk5Azby6yd5JJ5dz6yfBRSDk7F7',
+  secretId: 'AKIDvZ2pSGCZ37BOzhc0fCp7VhYHEctWOJF4',
+  secretKey: 'Bimp3SqhT5caboRTMC322bltPxKvcSIJ',
+  env:"dev-mkb4e"
 });
 
 
@@ -33,12 +35,16 @@ let user = require('./controller/user.js');
 let office = require('./controller/office.js');
 let appointment = require('./controller/appointment.js');
 let caseRouter = require('./controller/case.js');
+let articleRouter = require('./controller/article.js');
+let adminRouter = require('./controller/admin.js');
 router.use('/doctor', doctor.routes());
 router.use('/util', util.routes());
 router.use('/muser', user.routes());
 router.use('/office', office.routes());
 router.use('/appointment', appointment.routes());
 router.use('/case', caseRouter.routes());
+router.use('/article', articleRouter.routes());
+router.use('/admin', adminRouter.routes());
 
 app.use(router.routes());
 app.use(router.allowedMethods());

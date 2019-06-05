@@ -2,13 +2,14 @@ const Router = require('koa-router');
 let router = new Router();
 const cloud = require('tcb-admin-node');
 const db = cloud.database();
-const doctorCollection = db.collection('mrzy_doctor');
+const _ = db.command;
+const articleCollection = db.collection('mrzy_article');
 
-//根据ID获取医生
-async function getDoctor(id) {
+//根据ID获取文章
+async function getArticle(id) {
   let response = {}
   const _ = db.command
-  await doctorCollection.where({
+  await articleCollection.where({
     _id: _.eq(id.id)
   }).get() 
     .then(res => {
@@ -20,17 +21,16 @@ async function getDoctor(id) {
   return response;
 }
 
-//修改医生
-async function updateDoctor(form) {
+//修改文章
+async function updateArticle(form) {
   let response = {}
-  await doctorCollection.doc(form.id).update({
-      avatar:form.avatar,
-      name:form.name,
-      office:form.office,
-      price:form.price,
-      title:form.title,
-      desc:form.desc
-    })
+  console.log(form);
+  await articleCollection.doc(form.id).update({
+      content,
+      title,
+      type,
+      typeText
+    }=form)
     .then(res => {
       response = res;
     })
@@ -40,10 +40,10 @@ async function updateDoctor(form) {
   return response;
 }
 
-// 删除医生
-async function delDoctor(id) {
+// 删除文章
+async function delArticle(id) {
   let response = {}
-  await doctorCollection.doc(id.id).remove()
+  await articleCollection.doc(id.id).remove()
     .then(res => {
       response = res;
     })
@@ -53,11 +53,16 @@ async function delDoctor(id) {
   return response;
 }
 
-// 添加医生
-async function addDoctor(data) {
+// 添加文章
+async function addArticle(data) {
   let response = {}
-  await doctorCollection.add({
-      ...data
+  let date = new Date();
+  let time = date.getFullYear()+"-"+(date.getMonth()+1)+"-"+(date.getDate())
+  await articleCollection.add({
+      ...data,
+      creatTime:time,
+      creatDate:db.serverDate(),
+      view:0
     })
     .then(res => {
       response = res
@@ -66,17 +71,34 @@ async function addDoctor(data) {
   return response
 }
 
-// 获取医生列表
+//获取其他类型文章
+async function getOtherArticle(){
+  let response = {}
+  await articleCollection.where({
+    type: _.in(['zhinan', 'guanyu'])
+  }).get().then((res)=>{
+    response = res.data
+  }).catch((res)=>{
+    response = res
+  })
+  return response;
+}
+
+// 获取文章列表
 async function getData() {
   // 统计数据总量
-  let res = await doctorCollection.count();
+  let res = await articleCollection.where({
+    type: _.nin(['zhinan', 'guanyu'])
+  }).count();
   let total = res.total;
   let data = [];
   let length = 0;
   let start = 0;
   // 循环将数据读出来
   while (total > length) {
-    let res = await doctorCollection.skip(start).get();
+    let res = await articleCollection.where({
+      type: _.nin(['zhinan', 'guanyu'])
+    }).skip(start).get();
     // 读出来后将数据存到data里
     data = data.concat(res.data);
     length += res.data.length;
@@ -95,7 +117,7 @@ router.post("/list", async (ctx, next) => {
 })
 
 router.post("/add", async (ctx, next) => {
-  await addDoctor(ctx.request.body).then((data) => {
+  await addArticle(ctx.request.body).then((data) => {
     ctx.body = {
       code: 20000,
       data: data
@@ -104,7 +126,7 @@ router.post("/add", async (ctx, next) => {
 })
 
 router.post("/del", async (ctx, next) => {
-  await delDoctor(ctx.request.body).then((data) => {
+  await delArticle(ctx.request.body).then((data) => {
     ctx.body = {
       code: 20000,
       data: data
@@ -113,7 +135,7 @@ router.post("/del", async (ctx, next) => {
 })
 
 router.post("/update", async (ctx, next) => {
-  await updateDoctor(ctx.request.body).then((data) => {
+  await updateArticle(ctx.request.body).then((data) => {
     ctx.body = {
       code: 20000,
       data: data
@@ -122,10 +144,19 @@ router.post("/update", async (ctx, next) => {
 })
 
 router.post("/get", async (ctx, next) => {
-  await getDoctor(ctx.request.body).then((data) => {
+  await getArticle(ctx.request.body).then((data) => {
     ctx.body = {
       code: 20000,
       data:data.data
+    }
+  });
+})
+
+router.get("/other", async (ctx, next) => {
+  await getOtherArticle(ctx.request.body).then((data) => {
+    ctx.body = {
+      code: 20000,
+      data:data
     }
   });
 })
