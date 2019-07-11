@@ -10,7 +10,10 @@ const router = new Router({
 });
 
 app.use(cors({
-    origin: ['http://localhost:9527'],
+    // origin: ['http://localhost:9527'],
+    origin: function(ctx) {
+      return [ctx.request.header.origin];
+    },
     maxAge: 5,
     credentials: true
 }));
@@ -26,6 +29,7 @@ cloud.init({
   secretId: 'AKIDvZ2pSGCZ37BOzhc0fCp7VhYHEctWOJF4',
   secretKey: 'Bimp3SqhT5caboRTMC322bltPxKvcSIJ',
   env:"dev-mkb4e"
+  // env:'test-41b8dc'   
 });
 
 
@@ -50,7 +54,7 @@ app.use(router.routes());
 app.use(router.allowedMethods());
 
 app.listen(3000);
-
+// app.listen(9527);
 /*
     // Post
     router.post('/login',async (ctx,next)=>{

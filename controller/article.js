@@ -23,20 +23,15 @@ async function getArticle(id) {
 
 //修改文章
 async function updateArticle(form) {
+  console.log(form)
   let response = {}
-  console.log(form);
-  await articleCollection.doc(form.id).update({
+  response = await articleCollection.doc(form.id).update({
       content,
       title,
       type,
       typeText
     }=form)
-    .then(res => {
-      response = res;
-    })
-    .catch(res => {
-      response = res;
-    })
+    console.log(response)
   return response;
 }
 
@@ -107,7 +102,28 @@ async function getData() {
   return data;
 }
 
+//根据类型获取文章
+async function  getArticleByType(params){
+  let start = params.start;
+  let count = params.count;
+  let response = {}
+  // 统计数据总量
+  let res = await articleCollection.where({
+    type: _.in(params.types)
+  }).count();
+  let total = res.total;
+  await articleCollection.where({
+    type: _.in(params.types)
+  }).orderBy('creatDate', 'desc').limit(count).skip(start).get().then((res)=>{
+    response = res.data
+  }).catch((res)=>{
+    response = res
+  })
+  return {response,total};
+}
+
 router.post("/list", async (ctx, next) => {
+  
   await getData().then((data) => {
     ctx.body = {
       code: 20000,
@@ -148,6 +164,15 @@ router.post("/get", async (ctx, next) => {
     ctx.body = {
       code: 20000,
       data:data.data
+    }
+  });
+})
+
+router.post("/type", async (ctx, next) => {
+  await getArticleByType(ctx.request.body).then((data) => {
+    ctx.body = {
+      code: 20000,
+      data:data
     }
   });
 })

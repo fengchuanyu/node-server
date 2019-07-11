@@ -36,27 +36,34 @@ async function updateDoctor(form) {
   return response;
 }
 
-// 获取医生列表
-async function getData() {
+// 获取用户列表
+async function getData(info) {
   // 统计数据总量
+  let counts = info.count,start = info.start;
   let res = await userCollection.count();
   let total = res.total;
-  let data = [];
-  let length = 0;
-  let start = 0;
-  // 循环将数据读出来
-  while (total > length) {
-    let res = await userCollection.skip(start).get();
-    // 读出来后将数据存到data里
-    data = data.concat(res.data);
-    length += res.data.length;
-    start += length;
-  }
-  return data;
+  res = await userCollection.orderBy('_id','asc').limit(counts).skip(start).get();
+  let data = res.data;
+  return {data,total};
+  // // 统计数据总量
+  // let res = await userCollection.count();
+  // let total = res.total;
+  // let data = [];
+  // let length = 0;
+  // let start = 0;
+  // // 循环将数据读出来
+  // while (total > length) {
+  //   let res = await userCollection.skip(start).get();
+  //   // 读出来后将数据存到data里
+  //   data = data.concat(res.data);
+  //   length += res.data.length;
+  //   start += length;
+  // }
+  // return data;
 }
 
-router.get("/list", async (ctx, next) => {
-  await getData().then((data) => {
+router.post("/list", async (ctx, next) => {
+  await getData(ctx.request.body).then((data) => {
     ctx.body = {
       code: 20000,
       data: data
